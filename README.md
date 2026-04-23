@@ -6,6 +6,12 @@ The repo is meant to read less like “a clean VQE demo” and more like:
 
 > a structured study of symmetry, observables, noise, and mitigation tradeoffs for transverse-field Ising chains.
 
+## Snapshot
+
+**Headline result:** In the retained TFIM benchmark, physics-aware winner selection diverged from the raw-energy winner in `4/18` study buckets (false-winner rate `0.222`), and under the current raw-sector validity rule every noisy retained regime collapsed to `0.000` valid fraction.
+
+![TFIM VQE study overview](baseline_capture_study.png)
+
 ## Core question
 
 A stronger framing for the project is:
