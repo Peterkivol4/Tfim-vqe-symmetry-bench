@@ -1,16 +1,16 @@
 # Symmetry-Aware VQE for Transverse-Field Ising Chains
 
+**Short description:** Reproducible TFIM VQE study of symmetry handling, ansatz design, optimizer behavior, and mitigation under physics-facing evaluation criteria.
+
+![TFIM VQE study overview](baseline_capture_study.png)
+
+**Headline result.** In the committed near-critical baseline capture, symmetry-aware filtering reduces the exact-gap error from `1.8857` to `1.5469`, lowers observable-error L2 from `0.3376` to `0.1887`, and preserves `43.49%` probability mass in the target `X`-parity sector (`baseline_capture_single.json`, `baseline_capture_study_behavior_report.md`).
+
 This repository turns the original FieldLine VQE scaffold into a more physics-aware study of **how ansatz family, optimizer choice, field regime, symmetry handling, measurement strategy, and mitigation affect TFIM ground-state estimation**.
 
 The repo is meant to read less like “a clean VQE demo” and more like:
 
 > a structured study of symmetry, observables, noise, and mitigation tradeoffs for transverse-field Ising chains.
-
-## Snapshot
-
-**Headline result:** In the retained TFIM benchmark, physics-aware winner selection diverged from the raw-energy winner in `4/18` study buckets (false-winner rate `0.222`), and under the current raw-sector validity rule every noisy retained regime collapsed to `0.000` valid fraction.
-
-![TFIM VQE study overview](baseline_capture_study.png)
 
 ## Core question
 
