@@ -1,0 +1,650 @@
+{
+  "config": {
+    "run_spec": {
+      "n_qubits": 4,
+      "field_strength": 1.0,
+      "coupling": 1.0,
+      "periodic_boundary": false,
+      "ansatz": "hardware_efficient",
+      "depth": 1,
+      "optimizer": "SPSA",
+      "max_iter": 1,
+      "verification_shots": 16,
+      "seed": 17,
+      "output_prefix": "tmp_baseline_seeded/baseline_capture_zne",
+      "use_noise": true,
+      "symmetry_penalty_lambda": 0.0,
+      "shot_allocation": "equal",
+      "preflight_shots": 8,
+      "base_shots": 8,
+      "final_shots": 16,
+      "enable_dynamic_shots": false,
+      "enable_zne": true,
+      "enable_readout_mitigation": true,
+      "zne_factors": [
+        1,
+        3
+      ],
+      "zne_extrapolator": "linear",
+      "physical_validity_tol": 0.05,
+      "spsa": {
+        "learning_rate": 0.2,
+        "perturbation": 0.15,
+        "alpha": 0.602,
+        "gamma": 0.101,
+        "stability_constant_ratio": 0.1
+      },
+      "log_level": "INFO"
+    },
+    "noise_deck": {
+      "gate_error": 0.01,
+      "two_qubit_gate_error": null,
+      "t1": 50.0,
+      "t2": 70.0,
+      "gate_time": 0.1,
+      "seed": 17,
+      "readout_error": 0.0,
+      "readout_error_01": null,
+      "readout_error_10": null,
+      "effective_readout_error_01": 0.0,
+      "effective_readout_error_10": 0.0,
+      "effective_two_qubit_gate_error": 0.1,
+      "zne_scaling_strategy": "scale gate error and gate duration; keep T1/T2 fixed"
+    }
+  },
+  "system": {
+    "n_qubits": 4,
+    "field_strength": 1.0,
+    "coupling": 1.0
+  },
+  "exact_energy": -4.758770483143636,
+  "exact_summary": {
+    "energy": -4.758770483143632,
+    "energy_variance": 1.0658141036401503e-14,
+    "energy_stddev": 1.0323827311807139e-07,
+    "relative_energy_stddev": 2.1694316522252706e-08,
+    "half_chain_entropy": 0.4109866565145425,
+    "half_chain_entropy_mode": "statevector",
+    "magnetization_x": 0.810095485486842,
+    "magnetization_z": -2.0747292772682613e-15,
+    "correlation_xx_mean": 0.8071797191006713,
+    "correlation_zz_mean": 0.5061295137320883,
+    "x_parity": 0.9999999999999999,
+    "x_even_sector_probability": 1.0,
+    "x_odd_sector_probability": 5.551115123125783e-17,
+    "magnetization_x_profile": [
+      0.8620856092381803,
+      0.7581053617355036,
+      0.7581053617355036,
+      0.8620856092381803
+    ],
+    "magnetization_z_profile": [
+      -1.5265566588595902e-15,
+      -2.55351295663786e-15,
+      -2.609024107869118e-15,
+      -1.609823385706477e-15
+    ],
+    "correlation_xx_profile": [
+      0.8352823295874725,
+      0.750974498127069,
+      0.8352823295874726
+    ],
+    "correlation_zz_profile": [
+      0.49481813264570723,
+      0.52875227590485,
+      0.4948181326457074
+    ],
+    "connected_correlation_xx_profile": [
+      0.1817306069489898,
+      0.1762507586349502,
+      0.1817306069489899
+    ],
+    "connected_correlation_zz_profile": [
+      0.49481813264570723,
+      0.52875227590485,
+      0.4948181326457074
+    ],
+    "connected_correlation_xx_mean": 0.17990399084430997,
+    "connected_correlation_zz_mean": 0.5061295137320881,
+    "fidelity_to_exact": 0.9999999999999996
+  },
+  "results": {
+    "hardware_efficient_d1_SPSA_noisy": {
+      "label": "hardware_efficient_d1_SPSA_noisy",
+      "ansatz": "hardware_efficient",
+      "optimizer": "SPSA",
+      "depth": 1,
+      "seed": 17,
+      "noise_level": 0.01,
+      "energy": 0.9362713029544174,
+      "exact_gap": 5.695041786098054,
+      "relative_gap": 1.1967464718609244,
+      "cost_value": 0.12499999999999999,
+      "cost_standard_error": 0.8970437559004577,
+      "unmitigated_cost_value": 0.25,
+      "unmitigated_cost_standard_error": 0.8970437559004577,
+      "mitigation_gain": 0.125,
+      "symmetry_penalty_lambda": 0.0,
+      "filtered_energy": 0.9749584314800424,
+      "filtered_exact_gap": 5.733728914623679,
+      "exact_first_excited_energy": -4.064177772475914,
+      "exact_spectral_gap": 0.6945927106677221,
+      "energy_variance": 8.207302200148058,
+      "energy_stddev": 2.864838948378784,
+      "relative_energy_stddev": 3.0598384670540946,
+      "observable_error_l2": 0.665432828215209,
+      "filtered_observable_error_l2": 0.6447586440132589,
+      "symmetry_postselection_rate": 0.4492646323007406,
+      "sampled_postselection_rate": 0.75,
+      "sampled_postselection_standard_error": 0.10825317547305482,
+      "mitigated_sampled_postselection_rate": 0.75,
+      "mitigated_sampled_postselection_standard_error": 0.10825317547305482,
+      "x_parity": -0.10147073539852332,
+      "mitigated_x_parity": 0.5,
+      "target_x_parity_sector": 1,
+      "target_sector_probability": 0.4492646323007383,
+      "symmetry_breaking_error": 0.5507353676992617,
+      "physics_score": 6.996389311025517,
+      "physical_valid": false,
+      "physical_validity_tol": 0.05,
+      "physical_validity_reason": "target_x_parity_sector_mismatch>0.050",
+      "fidelity_to_exact": 0.05053391244770918,
+      "half_chain_entropy": 1.3184378138388972,
+      "connected_correlation_xx_mean": 0.1281366300660483,
+      "connected_correlation_zz_mean": -0.205696094342072,
+      "energy_history": [
+        -1.2499999999999996,
+        -1.9999999999999998,
+        0.12499999999999999
+      ],
+      "iterations": 3,
+      "circuit_depth": 7,
+      "execution_time": 0.626910924911499,
+      "optimal_params": [
+        2.6681688679858153,
+        -2.6301688923047806,
+        0.8628196915778527,
+        -1.3288781722573249,
+        -2.29107246624216,
+        -1.217388729452637,
+        -0.9513557638289256,
+        1.1995893833764972,
+        1.9852562284339383,
+        -3.545524907909514,
+        -2.0454065166254063,
+        1.154367703199748,
+        -3.1154594838597527,
+        3.6275414464228737,
+        2.5881922863609006,
+        -3.410513700257569
+      ],
+      "observables": {
+        "energy": 0.9362713029544174,
+        "energy_variance": 8.207302200148058,
+        "energy_stddev": 2.864838948378784,
+        "relative_energy_stddev": 3.0598384670540946,
+        "half_chain_entropy": 1.3184378138388972,
+        "half_chain_entropy_mode": "density_matrix",
+        "magnetization_x": -0.0583843027971309,
+        "magnetization_z": 0.07879382947577801,
+        "correlation_xx_mean": 0.12704457594929736,
+        "correlation_zz_mean": -0.23424469725529795,
+        "x_parity": -0.10147073539852332,
+        "x_even_sector_probability": 0.4492646323007383,
+        "x_odd_sector_probability": 0.5507353676992617,
+        "magnetization_x_profile": [
+          0.05840407433600731,
+          -0.12128740811437945,
+          -0.013683409443445357,
+          -0.1569704679667061
+        ],
+        "magnetization_z_profile": [
+          0.34921770971951416,
+          -0.1717400575163215,
+          0.14410254628045327,
+          -0.006404880580533928
+        ],
+        "correlation_xx_profile": [
+          0.27078671370606927,
+          0.04119342608226921,
+          0.06915358805955357
+        ],
+        "correlation_zz_profile": [
+          -0.5769019209538776,
+          -0.269676885249171,
+          0.1438447144371547
+        ],
+        "connected_correlation_xx_profile": [
+          0.27787039250560314,
+          0.0395338008167059,
+          0.06700569687583591
+        ],
+        "connected_correlation_zz_profile": [
+          -0.5169272514009302,
+          -0.24492870566271757,
+          0.14476767403743188
+        ],
+        "connected_correlation_xx_mean": 0.1281366300660483,
+        "connected_correlation_zz_mean": -0.205696094342072,
+        "fidelity_to_exact": 0.05053391244770918
+      },
+      "symmetry_summary": {
+        "raw": {
+          "energy": 0.9362713029544174,
+          "energy_variance": 8.207302200148058,
+          "energy_stddev": 2.864838948378784,
+          "relative_energy_stddev": 3.0598384670540946,
+          "half_chain_entropy": 1.3184378138388972,
+          "half_chain_entropy_mode": "density_matrix",
+          "magnetization_x": -0.0583843027971309,
+          "magnetization_z": 0.07879382947577801,
+          "correlation_xx_mean": 0.12704457594929736,
+          "correlation_zz_mean": -0.23424469725529795,
+          "x_parity": -0.10147073539852332,
+          "x_even_sector_probability": 0.4492646323007383,
+          "x_odd_sector_probability": 0.5507353676992617,
+          "magnetization_x_profile": [
+            0.05840407433600731,
+            -0.12128740811437945,
+            -0.013683409443445357,
+            -0.1569704679667061
+          ],
+          "magnetization_z_profile": [
+            0.34921770971951416,
+            -0.1717400575163215,
+            0.14410254628045327,
+            -0.006404880580533928
+          ],
+          "correlation_xx_profile": [
+            0.27078671370606927,
+            0.04119342608226921,
+            0.06915358805955357
+          ],
+          "correlation_zz_profile": [
+            -0.5769019209538776,
+            -0.269676885249171,
+            0.1438447144371547
+          ],
+          "connected_correlation_xx_profile": [
+            0.27787039250560314,
+            0.0395338008167059,
+            0.06700569687583591
+          ],
+          "connected_correlation_zz_profile": [
+            -0.5169272514009302,
+            -0.24492870566271757,
+            0.14476767403743188
+          ],
+          "connected_correlation_xx_mean": 0.1281366300660483,
+          "connected_correlation_zz_mean": -0.205696094342072,
+          "fidelity_to_exact": 0.05053391244770918
+        },
+        "filtered": {
+          "energy": 0.9749584314800424,
+          "energy_variance": 9.97589266935084,
+          "energy_stddev": 3.158463656487255,
+          "relative_energy_stddev": 3.23958802191446,
+          "half_chain_entropy": 1.5263023650878471,
+          "half_chain_entropy_mode": "density_matrix",
+          "magnetization_x": 0.0119558821813678,
+          "magnetization_z": -5.204170427930421e-18,
+          "correlation_xx_mean": 0.25191155859949477,
+          "correlation_zz_mean": -0.34092732006850446,
+          "x_parity": 1.0,
+          "x_even_sector_probability": 1.0,
+          "x_odd_sector_probability": 0.0,
+          "magnetization_x_profile": [
+            0.09392114157490689,
+            -0.12058606024476945,
+            0.15389138674408342,
+            -0.07940293934874966
+          ],
+          "magnetization_z_profile": [
+            6.938893903907228e-18,
+            0.0,
+            0.0,
+            -2.7755575615628914e-17
+          ],
+          "correlation_xx_profile": [
+            0.3783296940432923,
+            -0.0009247122881003746,
+            0.3783296940432923
+          ],
+          "correlation_zz_profile": [
+            -0.5425040478656119,
+            -0.16430259170263284,
+            -0.31597532063726874
+          ],
+          "connected_correlation_xx_profile": [
+            0.38965527447950155,
+            0.017632443744972782,
+            0.39054912249122775
+          ],
+          "connected_correlation_zz_profile": [
+            -0.5425040478656119,
+            -0.16430259170263284,
+            -0.31597532063726874
+          ],
+          "connected_correlation_xx_mean": 0.2659456135719007,
+          "connected_correlation_zz_mean": -0.3409273200685045,
+          "fidelity_to_exact": 0.112481394738149
+        },
+        "postselection_rate": 0.4492646323007406,
+        "raw_observable_error_l2": 0.665432828215209,
+        "filtered_observable_error_l2": 0.6447586440132589,
+        "raw_exact_gap": 5.695041786098054,
+        "filtered_exact_gap": 5.733728914623679,
+        "gap_improvement": -0.03868712852562517,
+        "target_sector": 1,
+        "sampled": {
+          "raw_shots": 16,
+          "verified_shots": 12,
+          "verification_rate": 0.75,
+          "verification_standard_error": 0.10825317547305482,
+          "target_sector": 1,
+          "raw_target_sector_probability": 0.75,
+          "raw_parity_expectation": 0.5,
+          "filtered_parity_expectation": 1.0,
+          "parity_shift": 0.5,
+          "mitigated_parity_expectation": 0.5,
+          "mitigated_even_sector_probability": 0.75,
+          "mitigated_target_sector_probability": 0.75,
+          "mitigated_verification_rate": 0.75,
+          "mitigated_verification_standard_error": 0.10825317547305482,
+          "readout_mitigation_applied": false,
+          "readout_mitigation_method": "none",
+          "readout_error_01": 0.0,
+          "readout_error_10": 0.0,
+          "limitation": "Mitigated parity diagnostics assume an independent per-qubit readout channel and clip negative quasi-probabilities."
+        },
+        "optimizer_summary": {
+          "success": true,
+          "message": "Completed qiskit_algorithms SPSA loop.",
+          "nfev": 3,
+          "requested_max_iter": 1,
+          "effective_max_iter": 1,
+          "optimizer": "SPSA",
+          "last_metadata": {
+            "mode": "shot_grouped_aer_cached_templates",
+            "groups": [
+              {
+                "basis": "ZZZZ",
+                "num_terms": 3,
+                "coefficient_weight": 3.0,
+                "terms": [
+                  {
+                    "name": "cost_0",
+                    "label": "IIZZ",
+                    "coeff": -1.0
+                  },
+                  {
+                    "name": "cost_1",
+                    "label": "IZZI",
+                    "coeff": -1.0
+                  },
+                  {
+                    "name": "cost_2",
+                    "label": "ZZII",
+                    "coeff": -1.0
+                  }
+                ]
+              },
+              {
+                "basis": "XXXX",
+                "num_terms": 4,
+                "coefficient_weight": 4.0,
+                "terms": [
+                  {
+                    "name": "cost_4",
+                    "label": "IIXI",
+                    "coeff": -1.0
+                  },
+                  {
+                    "name": "cost_5",
+                    "label": "IXII",
+                    "coeff": -1.0
+                  },
+                  {
+                    "name": "cost_3",
+                    "label": "IIIX",
+                    "coeff": -1.0
+                  },
+                  {
+                    "name": "cost_6",
+                    "label": "XIII",
+                    "coeff": -1.0
+                  }
+                ]
+              }
+            ],
+            "allocation": {
+              "ZZZZ": 8,
+              "XXXX": 8
+            },
+            "effective_shots": {
+              "ZZZZ": 8,
+              "XXXX": 8
+            },
+            "additional_shots": {
+              "ZZZZ": 8,
+              "XXXX": 8
+            },
+            "group_values": {
+              "ZZZZ": 0.0,
+              "XXXX": 0.25
+            },
+            "group_variances": {
+              "ZZZZ": 2.0,
+              "XXXX": 4.4375
+            },
+            "group_stddevs": {
+              "ZZZZ": 1.4142135623730951,
+              "XXXX": 2.1065374432940898
+            },
+            "group_standard_errors": {
+              "ZZZZ": 0.5,
+              "XXXX": 0.7447734554883115
+            },
+            "total_variance_of_mean": 0.8046875,
+            "total_standard_error": 0.8970437559004577,
+            "preflight_variances": {},
+            "preflight_stddevs": {},
+            "preflight_shots": 0,
+            "template_cache_hits": 2,
+            "template_cache_misses": 0,
+            "template_cache_size": 4,
+            "transpile_cache_enabled": true,
+            "readout_mitigation_enabled": false,
+            "readout_error_01": 0.0,
+            "readout_error_10": 0.0,
+            "zne_enabled": true,
+            "zne_extrapolator": "linear",
+            "zne_noise_factors": [
+              1,
+              3
+            ],
+            "zne_samples": [
+              0.25,
+              0.5
+            ],
+            "unmitigated_cost_value": 0.25,
+            "unmitigated_cost_standard_error": 0.8970437559004577,
+            "cost_value": 0.12499999999999999,
+            "shots_used": 16,
+            "effective_total_shots": 32
+          },
+          "shot_schedule": [
+            16,
+            16,
+            16
+          ],
+          "total_shot_history": [
+            32,
+            32,
+            32
+          ],
+          "total_shots_used": 96,
+          "avg_shots_per_eval": 32.0
+        }
+      },
+      "shot_allocation_strategy": "equal",
+      "dynamic_shots_enabled": false,
+      "base_shots": 8,
+      "final_shots": 16,
+      "preflight_shots": 8,
+      "measurement_plan": {
+        "zne_extrapolator": "linear",
+        "effective_two_qubit_gate_error": 0.1,
+        "runtime_layout_final_index": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "runtime_layout_initial_index": [
+          0,
+          1,
+          2,
+          3
+        ],
+        "runtime_layout_final_present": false,
+        "runtime_layout_resolved_type": "identity",
+        "shot_allocation": "equal",
+        "groups": [
+          {
+            "basis": "ZZZZ",
+            "num_terms": 3,
+            "coefficient_weight": 3.0,
+            "terms": [
+              {
+                "name": "cost_0",
+                "label": "IIZZ",
+                "coeff": -1.0
+              },
+              {
+                "name": "cost_1",
+                "label": "IZZI",
+                "coeff": -1.0
+              },
+              {
+                "name": "cost_2",
+                "label": "ZZII",
+                "coeff": -1.0
+              }
+            ]
+          },
+          {
+            "basis": "XXXX",
+            "num_terms": 4,
+            "coefficient_weight": 4.0,
+            "terms": [
+              {
+                "name": "cost_4",
+                "label": "IIXI",
+                "coeff": -1.0
+              },
+              {
+                "name": "cost_5",
+                "label": "IXII",
+                "coeff": -1.0
+              },
+              {
+                "name": "cost_3",
+                "label": "IIIX",
+                "coeff": -1.0
+              },
+              {
+                "name": "cost_6",
+                "label": "XIII",
+                "coeff": -1.0
+              }
+            ]
+          }
+        ],
+        "allocation": {
+          "ZZZZ": 8,
+          "XXXX": 8
+        },
+        "effective_shots": {
+          "ZZZZ": 8,
+          "XXXX": 8
+        },
+        "additional_shots": {
+          "ZZZZ": 8,
+          "XXXX": 8
+        },
+        "group_variances": {
+          "ZZZZ": 2.0,
+          "XXXX": 4.4375
+        },
+        "group_standard_errors": {
+          "ZZZZ": 0.5,
+          "XXXX": 0.7447734554883115
+        },
+        "total_standard_error": 0.8970437559004577,
+        "preflight_variances": {},
+        "shots_used_in_last_eval": null,
+        "template_cache_hits": 2,
+        "template_cache_misses": 0,
+        "template_cache_size": 4,
+        "transpile_cache_enabled": true,
+        "readout_mitigation_enabled": false,
+        "readout_error_01": 0.0,
+        "readout_error_10": 0.0,
+        "experiment_cache_totals": {
+          "measurement_template_hits": 12,
+          "measurement_template_misses": 4,
+          "noise_model_hits": 1,
+          "noise_model_misses": 2,
+          "backend_hits": 4,
+          "backend_misses": 3
+        },
+        "optimizer_budget": {
+          "requested_max_iter": 1,
+          "effective_max_iter": 1,
+          "nfev": 3,
+          "shot_schedule": [
+            16,
+            16,
+            16
+          ],
+          "total_shot_history": [
+            32,
+            32,
+            32
+          ],
+          "total_shots_used": 96,
+          "avg_shots_per_eval": 32.0
+        },
+        "zne_samples": [
+          0.25,
+          0.5
+        ],
+        "zne_mitigation_gain": 0.125,
+        "final_cost_evaluation_shots": 16
+      },
+      "zne_enabled": true,
+      "zne_noise_factors": [
+        1,
+        3
+      ],
+      "zne_samples": [
+        0.25,
+        0.5
+      ],
+      "objective_calls": 3,
+      "shot_schedule": [
+        16,
+        16,
+        16
+      ],
+      "estimated_total_shots_used": 96,
+      "avg_shots_per_eval": 32.0,
+      "original_two_qubit_gate_count": 3,
+      "transpiled_depth": 7,
+      "transpiled_two_qubit_gate_count": 3,
+      "transpiled_entangling_layer_count": 3
+    }
+  },
+  "best_label": "hardware_efficient_d1_SPSA_noisy"
+}

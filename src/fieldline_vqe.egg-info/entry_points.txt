@@ -1,0 +1,2 @@
+[console_scripts]
+fieldline-vqe = fieldline_vqe.cli:main

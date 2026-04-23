@@ -1,0 +1,81 @@
+from __future__ import annotations
+
+from typing import Any, Dict
+
+from .interfaces import RecordAssembler
+from .results import TrialRecord
+
+__all__ = ["RecordBuilder"]
+
+
+class RecordBuilder(RecordAssembler):
+    @staticmethod
+    def build_trial_record(*, label: str, identity: Dict[str, Any], energy_metrics: Dict[str, Any], physics_metrics: Dict[str, Any], execution_metrics: Dict[str, Any], measurement_plan: Dict[str, Any], observables: Dict[str, Any], symmetry_summary: Dict[str, Any], optimizer_summary: Dict[str, Any]) -> TrialRecord:
+        return TrialRecord(
+            label=label,
+            ansatz=identity["ansatz"],
+            optimizer=identity["optimizer"],
+            depth=identity["depth"],
+            seed=identity["seed"],
+            noise_level=identity["noise_level"],
+            energy=energy_metrics["energy"],
+            exact_gap=energy_metrics["exact_gap"],
+            relative_gap=energy_metrics["relative_gap"],
+            cost_value=energy_metrics["cost_value"],
+            cost_standard_error=energy_metrics.get("cost_standard_error"),
+            unmitigated_cost_value=energy_metrics.get("unmitigated_cost_value"),
+            unmitigated_cost_standard_error=energy_metrics.get("unmitigated_cost_standard_error"),
+            mitigation_gain=energy_metrics.get("mitigation_gain"),
+            symmetry_penalty_lambda=energy_metrics["symmetry_penalty_lambda"],
+            filtered_energy=energy_metrics.get("filtered_energy"),
+            filtered_exact_gap=energy_metrics.get("filtered_exact_gap"),
+            exact_first_excited_energy=energy_metrics.get("exact_first_excited_energy"),
+            exact_spectral_gap=energy_metrics.get("exact_spectral_gap"),
+            energy_variance=energy_metrics.get("energy_variance"),
+            energy_stddev=energy_metrics.get("energy_stddev"),
+            relative_energy_stddev=energy_metrics.get("relative_energy_stddev"),
+            observable_error_l2=physics_metrics.get("observable_error_l2"),
+            filtered_observable_error_l2=physics_metrics.get("filtered_observable_error_l2"),
+            symmetry_postselection_rate=physics_metrics.get("symmetry_postselection_rate"),
+            sampled_postselection_rate=physics_metrics.get("sampled_postselection_rate"),
+            sampled_postselection_standard_error=physics_metrics.get("sampled_postselection_standard_error"),
+            mitigated_sampled_postselection_rate=physics_metrics.get("mitigated_sampled_postselection_rate"),
+            mitigated_sampled_postselection_standard_error=physics_metrics.get("mitigated_sampled_postselection_standard_error"),
+            x_parity=physics_metrics.get("x_parity"),
+            mitigated_x_parity=physics_metrics.get("mitigated_x_parity"),
+            target_x_parity_sector=physics_metrics.get("target_x_parity_sector"),
+            target_sector_probability=physics_metrics.get("target_sector_probability"),
+            symmetry_breaking_error=physics_metrics.get("symmetry_breaking_error"),
+            physics_score=physics_metrics.get("physics_score"),
+            physical_valid=physics_metrics.get("physical_valid"),
+            physical_validity_tol=physics_metrics.get("physical_validity_tol"),
+            physical_validity_reason=physics_metrics.get("physical_validity_reason"),
+            fidelity_to_exact=observables.get("fidelity_to_exact"),
+            half_chain_entropy=observables.get("half_chain_entropy"),
+            connected_correlation_xx_mean=observables.get("connected_correlation_xx_mean"),
+            connected_correlation_zz_mean=observables.get("connected_correlation_zz_mean"),
+            energy_history=execution_metrics["energy_history"],
+            iterations=execution_metrics["iterations"],
+            circuit_depth=execution_metrics["circuit_depth"],
+            execution_time=execution_metrics["execution_time"],
+            optimal_params=execution_metrics["optimal_params"],
+            observables=observables,
+            symmetry_summary={**symmetry_summary, "optimizer_summary": optimizer_summary},
+            shot_allocation_strategy=measurement_plan["shot_allocation_strategy"],
+            dynamic_shots_enabled=measurement_plan["dynamic_shots_enabled"],
+            base_shots=measurement_plan.get("base_shots"),
+            final_shots=measurement_plan.get("final_shots"),
+            preflight_shots=measurement_plan.get("preflight_shots"),
+            measurement_plan=measurement_plan["measurement_plan"],
+            zne_enabled=measurement_plan["zne_enabled"],
+            zne_noise_factors=measurement_plan["zne_noise_factors"],
+            zne_samples=measurement_plan["zne_samples"],
+            objective_calls=execution_metrics.get("objective_calls"),
+            shot_schedule=execution_metrics["shot_schedule"],
+            estimated_total_shots_used=execution_metrics.get("estimated_total_shots_used"),
+            avg_shots_per_eval=execution_metrics.get("avg_shots_per_eval"),
+            original_two_qubit_gate_count=execution_metrics["original_two_qubit_gate_count"],
+            transpiled_depth=execution_metrics["transpiled_depth"],
+            transpiled_two_qubit_gate_count=execution_metrics["transpiled_two_qubit_gate_count"],
+            transpiled_entangling_layer_count=execution_metrics["transpiled_entangling_layer_count"],
+        )

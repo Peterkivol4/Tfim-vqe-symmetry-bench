@@ -1,0 +1,37 @@
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "fieldline-vqe"
+version = "0.2.1"
+description = "Symmetry-aware VQE study for transverse-field Ising chains under ideal, noisy, and IBM Runtime-oriented workflows"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+  "numpy",
+  "scipy",
+  "matplotlib",
+  "qiskit",
+  "qiskit-aer",
+  "qiskit-algorithms",
+]
+
+[project.optional-dependencies]
+runtime = ["qiskit-ibm-runtime"]
+dev = ["pytest"]
+
+[project.scripts]
+fieldline-vqe = "fieldline_vqe.cli:main"
+
+[tool.setuptools]
+package-dir = {"" = "src"}
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.pytest.ini_options]
+markers = [
+  "live_runtime: opt-in IBM Runtime integration checks that require credentials and queue access",
+]

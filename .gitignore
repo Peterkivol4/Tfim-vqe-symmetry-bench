@@ -1,0 +1,15 @@
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.venv/
+.venv_clean/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.mplconfig/
+.mplconfig*/
+.release_stage/
+*.release_stage*
+*.zip
+.DS_Store
