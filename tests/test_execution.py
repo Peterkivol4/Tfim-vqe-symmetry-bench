@@ -1,17 +1,19 @@
 from __future__ import annotations
 
 import os
+from types import SimpleNamespace
 
 import numpy as np
 import pytest
 
 from fieldline_vqe.ansatz import CircuitFactory
-from fieldline_vqe.config import NoiseDeck, RunSpec, StudySpec, SPSAConfig
+from fieldline_vqe.config import NoiseBodyConfig, NoiseBodySweepSpec, NoiseDeck, RunSpec, StudySpec, SPSAConfig
 from fieldline_vqe.experiment import FieldLineExperiment
 from fieldline_vqe.hamiltonian import SpinChainBuilder
 from fieldline_vqe.noise import NoiseFactory
+from fieldline_vqe.noise_bodies import build_deviation_signature, infer_noise_body
 from fieldline_vqe.observables import MeasurementPlanner, ObservableFactory, StateAnalyzer
-from fieldline_vqe.pipeline import run_experiment, run_study
+from fieldline_vqe.pipeline import run_experiment, run_noise_body_sweep, run_study
 from fieldline_vqe.study import StudyRunner
 
 pytestmark = pytest.mark.filterwarnings(
@@ -66,6 +68,92 @@ def test_noise_model_includes_readout_and_extended_gates() -> None:
     assert "measure" in basis_gates
 
 
+def test_ideal_body_zero_deviation_signature() -> None:
+    h = SpinChainBuilder.ising_chain(4, 1.0, 1.0)
+    exp = FieldLineExperiment(h, 4, 1.0, 1.0, seed=1)
+    exact = exp.exact_summary
+    record = SimpleNamespace(
+        depth=1,
+        ansatz="exact",
+        optimizer="EXACT",
+        exact_gap=0.0,
+        fidelity_to_exact=1.0,
+        target_sector_probability=1.0,
+        symmetry_breaking_error=0.0,
+        energy_variance=float(exact["energy_variance"]),
+        observables=exact,
+    )
+    signature = build_deviation_signature(
+        record=record,
+        exact_summary=exact,
+        n_qubits=4,
+        field_strength=1.0,
+        coupling=1.0,
+        noise_body="ideal",
+        noise_strength=0.0,
+        gradient_norm=0.0,
+    )
+    assert signature.energy_error == pytest.approx(0.0)
+    assert signature.parity_sector_loss == pytest.approx(0.0)
+    assert signature.magnetization_x_error == pytest.approx(0.0)
+    assert signature.correlation_xx_error == pytest.approx(0.0)
+
+
+def test_dephasing_damages_x_observables_more_than_z_basis_population() -> None:
+    from qiskit import QuantumCircuit
+
+    h = ObservableFactory.zero_operator(1)
+    exp = FieldLineExperiment(h, 1, 1.0, 1.0, seed=1)
+    circuit = QuantumCircuit(1)
+    circuit.h(0)
+    exact = StateAnalyzer.summarize(exp._simulate_state(circuit, None), 1, h, None, ObservableFactory.default_bundle(1))
+    noisy = StateAnalyzer.summarize(
+        exp._simulate_state(circuit, NoiseBodyConfig(body="local_dephasing", strength=0.2)),
+        1,
+        h,
+        None,
+        ObservableFactory.default_bundle(1),
+    )
+    assert abs(noisy["magnetization_x"] - exact["magnetization_x"]) > abs(noisy["magnetization_z"] - exact["magnetization_z"]) + 1e-3
+
+
+def test_amplitude_damping_creates_magnetization_bias() -> None:
+    from qiskit import QuantumCircuit
+
+    h = ObservableFactory.zero_operator(1)
+    exp = FieldLineExperiment(h, 1, 1.0, 1.0, seed=1)
+    circuit = QuantumCircuit(1)
+    circuit.x(0)
+    exact = StateAnalyzer.summarize(exp._simulate_state(circuit, None), 1, h, None, ObservableFactory.default_bundle(1))
+    noisy = StateAnalyzer.summarize(
+        exp._simulate_state(circuit, NoiseBodyConfig(body="amplitude_damping", strength=0.3)),
+        1,
+        h,
+        None,
+        ObservableFactory.default_bundle(1),
+    )
+    assert noisy["magnetization_z"] > exact["magnetization_z"] + 0.1
+
+
+def test_readout_only_does_not_change_statevector_metrics() -> None:
+    from qiskit import QuantumCircuit
+
+    h = ObservableFactory.zero_operator(1)
+    exp = FieldLineExperiment(h, 1, 1.0, 1.0, seed=1)
+    circuit = QuantumCircuit(1)
+    circuit.h(0)
+    ideal = StateAnalyzer.summarize(exp._simulate_state(circuit, None), 1, h, None, ObservableFactory.default_bundle(1))
+    readout_only = StateAnalyzer.summarize(
+        exp._simulate_state(circuit, NoiseBodyConfig(body="readout_only", strength=0.2)),
+        1,
+        h,
+        None,
+        ObservableFactory.default_bundle(1),
+    )
+    assert readout_only["magnetization_x"] == pytest.approx(ideal["magnetization_x"], abs=1e-8)
+    assert readout_only["half_chain_entropy"] == pytest.approx(ideal["half_chain_entropy"], abs=1e-8)
+
+
 def test_single_run_smoke(tmp_path) -> None:
     spec = RunSpec(n_qubits=4, field_strength=1.0, ansatz="hardware_efficient", depth=1, optimizer="COBYLA", max_iter=2, verification_shots=64, output_prefix=str(tmp_path / "single"), use_noise=False)
     record = run_experiment(spec, NoiseDeck(gate_error=0.01))
@@ -118,6 +206,99 @@ def test_tiny_noisy_study_smoke(tmp_path) -> None:
     assert (tmp_path / "study_raw.csv").exists()
     assert (tmp_path / "study_summary.csv").exists()
     assert (tmp_path / "study_crossover.csv").exists()
+
+
+def test_noise_body_sweep_writes_required_artifacts(tmp_path) -> None:
+    spec = NoiseBodySweepSpec(
+        system_sizes=[4],
+        field_strengths=[0.5, 1.0],
+        depths=[1],
+        ansatzes=["hardware_efficient"],
+        optimizers=["COBYLA"],
+        bodies=["ideal", "local_dephasing"],
+        strengths=[0.01],
+        seeds=[7],
+        max_iter=1,
+        verification_shots=16,
+        output_prefix=str(tmp_path / "body_sweep"),
+        base_shots=8,
+        final_shots=16,
+        preflight_shots=8,
+        enable_readout_mitigation=False,
+        compute_gradient_norm=False,
+    )
+    payload = run_noise_body_sweep(spec)
+    assert payload["rows"]
+    assert (tmp_path / "body_sweep_raw.csv").exists()
+    assert (tmp_path / "body_sweep_summary.csv").exists()
+    assert (tmp_path / "body_sweep_deviation_signatures.json").exists()
+    assert (tmp_path / "body_sweep_body_atlas_report.md").exists()
+    assert (tmp_path / "body_sweep_critical_drift_map.csv").exists()
+    assert (tmp_path / "body_sweep_gradient_collapse_report.md").exists()
+    assert (tmp_path / "body_sweep_body_matching_report.md").exists()
+
+
+def test_body_atlas_report_contains_each_body(tmp_path) -> None:
+    spec = NoiseBodySweepSpec(
+        system_sizes=[4],
+        field_strengths=[1.0],
+        depths=[1],
+        ansatzes=["hardware_efficient"],
+        optimizers=["COBYLA"],
+        bodies=["ideal", "local_dephasing"],
+        strengths=[0.01],
+        seeds=[7],
+        max_iter=1,
+        verification_shots=16,
+        output_prefix=str(tmp_path / "atlas"),
+        base_shots=8,
+        final_shots=16,
+        preflight_shots=8,
+        enable_readout_mitigation=False,
+        compute_gradient_norm=False,
+    )
+    run_noise_body_sweep(spec)
+    report = (tmp_path / "atlas_body_atlas_report.md").read_text()
+    assert "## Body: ideal" in report
+    assert "## Body: local_dephasing" in report
+
+
+def test_body_matcher_recovers_synthetic_dephasing() -> None:
+    reference = [
+        {"noise_body": "local_dephasing", "mean_energy_error": 0.08, "mean_magnetization_x_error": 0.5, "mean_magnetization_z_error": 0.02, "mean_correlation_xx_error": 0.4, "mean_correlation_zz_error": 0.05, "mean_parity_sector_loss": 0.1, "mean_symmetry_breaking_error": 0.08, "mean_energy_variance": 0.03, "mean_critical_drift_score": 0.25},
+        {"noise_body": "amplitude_damping", "mean_energy_error": 0.09, "mean_magnetization_x_error": 0.12, "mean_magnetization_z_error": 0.45, "mean_correlation_xx_error": 0.15, "mean_correlation_zz_error": 0.18, "mean_parity_sector_loss": 0.04, "mean_symmetry_breaking_error": 0.03, "mean_energy_variance": 0.02, "mean_critical_drift_score": 0.12},
+    ]
+    row = {
+        "noise_body": "heldout",
+        "energy_error": 0.07,
+        "magnetization_x_error": 0.52,
+        "magnetization_z_error": 0.01,
+        "correlation_xx_error": 0.42,
+        "correlation_zz_error": 0.06,
+        "parity_sector_loss": 0.11,
+        "symmetry_breaking_error": 0.09,
+        "energy_variance": 0.03,
+        "critical_drift_score": 0.27,
+    }
+    assert infer_noise_body(row, reference) == "local_dephasing"
+
+
+def test_body_matcher_does_not_use_body_label_as_feature() -> None:
+    reference = [
+        {"noise_body": "local_dephasing", "mean_energy_error": 0.08, "mean_magnetization_x_error": 0.5, "mean_magnetization_z_error": 0.02},
+        {"noise_body": "amplitude_damping", "mean_energy_error": 0.09, "mean_magnetization_x_error": 0.1, "mean_magnetization_z_error": 0.45},
+    ]
+    row = {"noise_body": "amplitude_damping", "energy_error": 0.08, "magnetization_x_error": 0.51, "magnetization_z_error": 0.01}
+    assert infer_noise_body(row, reference) == "local_dephasing"
+
+
+def test_body_matcher_handles_missing_entropy() -> None:
+    reference = [
+        {"noise_body": "local_dephasing", "mean_energy_error": 0.08, "mean_magnetization_x_error": 0.5},
+        {"noise_body": "amplitude_damping", "mean_energy_error": 0.09, "mean_magnetization_x_error": 0.1},
+    ]
+    row = {"noise_body": "heldout", "energy_error": 0.081, "magnetization_x_error": 0.49, "entanglement_entropy_error": None}
+    assert infer_noise_body(row, reference) == "local_dephasing"
 
 
 def test_tfim_hamiltonian_groups_into_x_and_zz_bases() -> None:
@@ -291,7 +472,7 @@ def test_live_runtime_smoke_opt_in(tmp_path) -> None:
     from pathlib import Path as _Path
 
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_live_runtime_smoke import PENDING_STATUSES, run_live_smoke
+    from tools.live_runtime_smoke import PENDING_STATUSES, run_live_smoke
 
     report = run_live_smoke(
         timeout=int(os.getenv("FIELDLINE_VQE_LIVE_TIMEOUT", "240")),

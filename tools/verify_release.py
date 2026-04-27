@@ -7,9 +7,12 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
 FORBIDDEN_PARTS = {'__pycache__', '.pytest_cache', '.mypy_cache', '.ruff_cache', 'baseline_capture_artifacts', 'baseline_before_seeded_artifacts', 'baseline_after_seeded_artifacts'}
 FORBIDDEN_SUFFIXES = {'.pyc', '.pyo'}
 FORBIDDEN_NAMES = {'baseline.json', 'baseline_after.json', 'STEP1_AUDIT.md', 'FINAL_AUDIT.md', 'surface_audit.json', 'surface_audit.md'}
+DEFAULT_JSON_OUT = ROOT / 'release' / 'release_verify.json'
+DEFAULT_MD_OUT = ROOT / 'release' / 'release_verify.md'
 
 
 def _hash(path: Path) -> str:
@@ -86,10 +89,12 @@ def write_markdown(report: dict[str, Any], out: Path) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser(description='Verify a release bundle against its manifest.')
     parser.add_argument('path', type=Path)
-    parser.add_argument('--json-out', type=Path, default=Path('release_verify.json'))
-    parser.add_argument('--md-out', type=Path, default=Path('release_verify.md'))
+    parser.add_argument('--json-out', type=Path, default=DEFAULT_JSON_OUT)
+    parser.add_argument('--md-out', type=Path, default=DEFAULT_MD_OUT)
     args = parser.parse_args()
     report = verify(args.path)
+    args.json_out.parent.mkdir(parents=True, exist_ok=True)
+    args.md_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True))
     write_markdown(report, args.md_out)
     raise SystemExit(0 if report['ok'] else 1)

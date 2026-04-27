@@ -1,22 +1,58 @@
-# Symmetry-Aware VQE for Transverse-Field Ising Chains
+# Noise-Body VQE for Transverse-Field Ising Chains
 
-**Short description:** Reproducible TFIM VQE study of symmetry handling, ansatz design, optimizer behavior, and mitigation under physics-facing evaluation criteria.
+**In one sentence.** FieldLine studies VQE failure as environmental physics: it models structured noise bodies and asks which body caused which physical deformation in the learned TFIM state.
 
-![TFIM VQE study overview](baseline_capture_study.png)
+![False-winner case panel](docs/figures/false_winner_case.svg)
 
-**Headline result.** In the committed near-critical baseline capture, symmetry-aware filtering reduces the exact-gap error from `1.8857` to `1.5469`, lowers observable-error L2 from `0.3376` to `0.1887`, and preserves `43.49%` probability mass in the target `X`-parity sector (`baseline_capture_single.json`, `baseline_capture_study_behavior_report.md`).
+**Project identity.** FieldLine treats VQE as an imperfect physical instrument, not only an optimizer. The repo models local dephasing, amplitude damping, correlated ZZ noise, coherent drift, readout distortion, and hardware-style phenomenological noise as distinct environmental bodies, then records the deformation signature each body leaves in energy, symmetry, magnetization, correlations, entanglement, variance, and trainability. False winners are still central here, but they are treated as one important deformation mode rather than the whole identity.
 
-This repository turns the original FieldLine VQE scaffold into a more physics-aware study of **how ansatz family, optimizer choice, field regime, symmetry handling, measurement strategy, and mitigation affect TFIM ground-state estimation**.
+**Committed artifact layout.** Reproducible baselines live in `results/baselines/`, wider sweeps and crossover studies live in `results/studies/`, noise-body atlas outputs live in `results/noise_bodies/`, runtime smoke outputs live in `results/runtime/`, and regenerable maintenance outputs land in `audit/` and `release/`.
+
+## Noise-body framing
+
+FieldLine keeps the TFIM Hamiltonian as the physical system,
+
+\[
+H_{\mathrm{TFIM}} = -J \sum_i Z_i Z_{i+1} - g \sum_i X_i ,
+\]
+
+but treats the environmental term as a structured body rather than a generic nuisance parameter. In the current repo slice, the supported bodies are:
+
+- `ideal`
+- `local_dephasing`
+- `amplitude_damping`
+- `depolarizing`
+- `correlated_zz_noise`
+- `coherent_x_drift`
+- `coherent_z_drift`
+- `readout_only`
+- `hardware`
+
+The main artifact is no longer only a gap table. It is a deviation-signature table that asks which body moved which observable first.
+
+## One case where raw energy picked the wrong winner
+
+- `setup:` `n=4`, weak-field TFIM (`g=0.5`), ideal execution, depth-1 COBYLA sweep from `results/studies/wide_crossover_behavior_crossover.csv`.
+- `raw-energy winner:` the hardware-efficient ansatz reached energy `-2.6500`, but only `51.92%` of the state remained in the target `X`-parity sector and the symmetry-breaking error was `0.4808`.
+- `physics-aware winner:` the symmetry-preserving ansatz reached energy `-2.6318`, kept `100%` of the probability mass in the target sector, and drove the symmetry-breaking error to numerical zero.
+- `why they differed:` the lower-energy candidate bought a `0.0182` raw-energy gain by spilling almost half of its probability mass out of the target sector.
+- `what criterion I trusted more:` the symmetry-preserving result, because this repo treats target-sector validity as a prerequisite for comparing gap and observable error, not as an after-the-fact footnote.
+
+**Headline baseline result.** In the committed near-critical baseline capture, symmetry-aware filtering reduces the exact-gap error from `1.8857` to `1.5469`, lowers observable-error L2 from `0.3376` to `0.1887`, and preserves `43.49%` probability mass in the target `X`-parity sector (`results/baselines/baseline_capture_single.json`, `results/baselines/baseline_capture_study_behavior_report.md`).
+
+**Hand-written note.** [What surprised me in this repo](docs/notes/what_surprised_me.md).
+
+This repository turns the original FieldLine VQE scaffold into a more physics-aware study of **how structured environmental bodies deform TFIM variational states across ansatz family, optimizer choice, field regime, symmetry handling, measurement strategy, and mitigation settings**.
 
 The repo is meant to read less like “a clean VQE demo” and more like:
 
-> a structured study of symmetry, observables, noise, and mitigation tradeoffs for transverse-field Ising chains.
+> a structured study of environment-induced deformation, symmetry leakage, observable drift, and mitigation tradeoffs for transverse-field Ising chains.
 
 ## Core question
 
 A stronger framing for the project is:
 
-> How much do symmetry-aware objectives, ansatz depth, optimizer choice, grouped measurements, and mitigation change energy quality and observable accuracy for TFIM workloads across field and noise regimes?
+> When VQE deviates from the exact TFIM ground state, can we classify the physical cause of the deviation by the pattern it leaves in energy, symmetry, magnetization, correlations, entanglement, variance, and gradients?
 
 ## What is materially stronger now
 
@@ -52,7 +88,7 @@ Why the sign looks like this: the constant term from `λ(1 - <Π_X>)` does not a
 
 This means symmetry is no longer just something logged after the run. When `--symmetry-penalty-lambda > 0`, the optimizer is pushed away from symmetry-breaking regions during the loop.
 
-### 3. “False winners” are now surfaced in crossover analysis
+### 3. False winners are first-class outputs, not side effects
 
 A shallow hardware-efficient ansatz can sometimes look artificially strong under noise because it accumulates less gate error, even while leaking out of the correct symmetry sector.
 
@@ -171,9 +207,23 @@ This version is better positioned to support claims like:
 
 ```text
 .
+├── audit/
+│   └── .gitkeep
+├── docs/
+│   ├── figures/
+│   │   └── false_winner_case.svg
+│   └── notes/
+│       └── what_surprised_me.md
 ├── README.md
 ├── pyproject.toml
 ├── requirements.txt
+├── results/
+│   ├── baselines/
+│   ├── noise_bodies/
+│   ├── runtime/
+│   └── studies/
+├── release/
+│   └── .gitkeep
 ├── src/
 │   └── fieldline_vqe/
 │       ├── __init__.py
@@ -184,14 +234,26 @@ This version is better positioned to support claims like:
 │       ├── hamiltonian.py
 │       ├── metrics.py
 │       ├── noise.py
+│       ├── noise_bodies.py
 │       ├── observables.py
 │       ├── pipeline.py
 │       ├── plotting.py
 │       ├── results.py
 │       ├── runtime.py
 │       └── study.py
+├── tools/
+│   ├── audit_deps.py
+│   ├── audit_surface.py
+│   ├── build_native.py
+│   ├── capture_baseline.py
+│   ├── compare_baseline.py
+│   ├── live_runtime_smoke.py
+│   ├── package_release.py
+│   └── verify_release.py
 └── tests/
-    └── test_config.py
+    ├── test_config.py
+    ├── test_execution.py
+    └── test_hardening.py
 ```
 
 ## Main modules
@@ -238,7 +300,7 @@ The repo also includes an opt-in **live IBM Runtime smoke path**. It is meant to
 
 ```bash
 export IBM_RUNTIME_TOKEN=...
-python tools_live_runtime_smoke.py --output tmp_live_runtime_smoke.json
+python tools/live_runtime_smoke.py --output results/runtime/live_runtime_smoke.json
 
 FIELDLINE_VQE_RUN_LIVE_RUNTIME=1 pytest tests/test_execution.py -k live_runtime -v
 ```
@@ -260,7 +322,7 @@ python -m fieldline_vqe.cli \
   --depth 2 \
   --optimizer COBYLA \
   --symmetry-penalty-lambda 0.25 \
-  --output-prefix tfim_single
+  --output-prefix results/examples/tfim_single
 ```
 
 ### Noisy single run with variance-aware grouping, SPSA, dynamic shots, and local ZNE
@@ -282,7 +344,7 @@ python -m fieldline_vqe.cli \
   --enable-dynamic-shots \
   --enable-zne \
   --zne-factors 1,3,5 \
-  --output-prefix tfim_noisy
+  --output-prefix results/examples/tfim_noisy
 ```
 
 ### Full study sweep
@@ -302,8 +364,25 @@ python -m fieldline_vqe.cli \
   --enable-zne \
   --seeds 7,21 \
   --max-iter 80 \
-  --output-prefix tfim_study
+  --output-prefix results/examples/tfim_study
 ```
+
+### Noise-body sweep
+
+```bash
+python -m fieldline_vqe.cli noise-body-sweep \
+  --n-values 4 \
+  --g-values 0.5,1.0 \
+  --depths 1 \
+  --ansatzes hardware_efficient,symmetry_preserving \
+  --optimizers COBYLA \
+  --bodies ideal,local_dephasing,amplitude_damping,correlated_zz_noise,coherent_z_drift \
+  --strengths 0.005,0.01 \
+  --max-iter 8 \
+  --output-stem results/noise_bodies/noise_body_sweep
+```
+
+This writes a raw run table, an aggregated summary, deviation signatures, a body atlas report, a critical-drift map, a gradient-collapse report, and a simple body-matching report.
 
 ## Output artifacts
 
@@ -343,13 +422,12 @@ A strong writeup from this repo should now be able to say something specific, fo
 
 ## Current limitations
 
-This repo is materially stronger than the original version, but a few limitations remain:
+This repo is materially stronger than the original version, but four limitations still matter:
 
-- the local mitigation path is still simulator-first, not a substitute for a fully budgeted IBM hardware campaign
-- local readout mitigation still assumes an independent per-qubit channel and clipped quasi-probabilities, so the sampled parity diagnostic remains a bounded local correction rather than a hardware-calibrated mitigation campaign
-- exact benchmarking is naturally limited to small system sizes
-- the crossover metric is physics-aware, but still a user-chosen scalarization of gap, symmetry error, and observable error
-- runtime support is prepared structurally, but real backend studies still require credentials, queue access, and careful quota control
+- **Mitigation realism.** The local mitigation path is still simulator-first, and the readout correction assumes independent per-qubit channels with clipped quasi-probabilities.
+- **Scale limits.** Exact benchmarking, exact target-sector labels, and exact-gap calibration are naturally limited to small chains.
+- **Scalarization choice.** The crossover score is physics-aware, but it still reflects a chosen weighting of gap, symmetry error, and observable error.
+- **Runtime access limits.** Runtime support is structurally ready, but broader backend studies still depend on credentials, queue access, and quota control.
 
 ## Best next experimental step
 

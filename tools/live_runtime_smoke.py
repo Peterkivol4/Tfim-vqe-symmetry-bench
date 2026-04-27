@@ -8,7 +8,7 @@ import sys
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src"
 if str(SRC) not in sys.path:
     sys.path.insert(0, str(SRC))
@@ -100,6 +100,7 @@ def _coerce_float_list(value: Any) -> list[float] | None:
 
 
 def write_report(report: dict[str, Any], output_path: Path) -> None:
+    output_path.parent.mkdir(parents=True, exist_ok=True)
     output_path.write_text(json.dumps(report, indent=2, sort_keys=True))
 
 
@@ -251,7 +252,7 @@ def run_live_smoke(
 
 def main() -> None:
     parser = argparse.ArgumentParser(description="Run an opt-in IBM Runtime smoke job and export a study-comparable JSON report.")
-    parser.add_argument("--output", type=Path, default=Path("tmp_live_runtime_smoke.json"))
+    parser.add_argument("--output", type=Path, default=ROOT / "results" / "runtime" / "live_runtime_smoke.json")
     parser.add_argument("--n-qubits", type=int, default=2)
     parser.add_argument("--field-strength", type=float, default=1.0)
     parser.add_argument("--coupling", type=float, default=1.0)

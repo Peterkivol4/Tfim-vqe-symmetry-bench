@@ -1,0 +1,33 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="960" height="520" viewBox="0 0 960 520" role="img" aria-labelledby="title desc">
+  <title id="title">False winner case in TFIM VQE crossover analysis</title>
+  <desc id="desc">Comparison between the raw-energy winner and the physics-aware winner for a weak-field four-qubit TFIM case.</desc>
+  <rect width="960" height="520" fill="#f5f1e8"/>
+  <text x="48" y="56" font-family="Georgia, serif" font-size="30" fill="#1f2a1f">One false-winner case from the retained TFIM sweep</text>
+  <text x="48" y="88" font-family="Helvetica, Arial, sans-serif" font-size="17" fill="#374137">n=4, g=0.5, ideal execution, depth-1 COBYLA bucket</text>
+
+  <rect x="48" y="128" width="396" height="270" rx="18" fill="#f8d8cd" stroke="#8f4b39" stroke-width="2"/>
+  <text x="74" y="168" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#6a2d1f">Raw-energy winner</text>
+  <text x="74" y="205" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#2f1e17">hardware_efficient</text>
+  <text x="74" y="240" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#2f1e17">Energy: -2.6500</text>
+  <text x="74" y="272" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#2f1e17">Target-sector probability: 0.5192</text>
+  <text x="74" y="304" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#2f1e17">Symmetry error: 0.4808</text>
+  <text x="74" y="336" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#2f1e17">Execution burden: depth 7, 3 two-qubit gates</text>
+  <text x="74" y="382" font-family="Helvetica, Arial, sans-serif" font-size="16" fill="#5d2b1e">Lower energy by 0.0182,</text>
+  <text x="74" y="404" font-family="Helvetica, Arial, sans-serif" font-size="16" fill="#5d2b1e">but nearly half the mass leaves the target sector.</text>
+
+  <rect x="516" y="128" width="396" height="270" rx="18" fill="#dce8d0" stroke="#42623b" stroke-width="2"/>
+  <text x="542" y="168" font-family="Helvetica, Arial, sans-serif" font-size="24" font-weight="700" fill="#214b25">Physics-aware winner</text>
+  <text x="542" y="205" font-family="Helvetica, Arial, sans-serif" font-size="20" fill="#18301b">symmetry_preserving</text>
+  <text x="542" y="240" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#18301b">Energy: -2.6318</text>
+  <text x="542" y="272" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#18301b">Target-sector probability: 1.0000</text>
+  <text x="542" y="304" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#18301b">Symmetry error: 0.0000</text>
+  <text x="542" y="336" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#18301b">Execution burden: depth 5, 3 two-qubit gates</text>
+  <text x="542" y="382" font-family="Helvetica, Arial, sans-serif" font-size="16" fill="#244629">Slightly higher energy,</text>
+  <text x="542" y="404" font-family="Helvetica, Arial, sans-serif" font-size="16" fill="#244629">but fully inside the target X-parity sector.</text>
+
+  <path d="M 458 252 L 502 252" stroke="#50594d" stroke-width="3" fill="none"/>
+  <path d="M 494 244 L 502 252 L 494 260" stroke="#50594d" stroke-width="3" fill="none"/>
+
+  <rect x="48" y="432" width="864" height="50" rx="12" fill="#e7e0d2" stroke="#6f6558" stroke-width="1.5"/>
+  <text x="72" y="463" font-family="Helvetica, Arial, sans-serif" font-size="18" fill="#2d312a">Repo rule: require physical validity first, then compare filtered gap and observable error.</text>
+</svg>

@@ -7,8 +7,10 @@ import sys
 from dataclasses import asdict, dataclass
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / 'src' / 'fieldline_vqe'
+DEFAULT_JSON_OUT = ROOT / 'audit' / 'dependency_audit.json'
+DEFAULT_MD_OUT = ROOT / 'audit' / 'dependency_audit.md'
 
 
 @dataclass
@@ -136,11 +138,13 @@ def write_markdown(report: dict[str, object], out: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Audit import/dependency surface for fieldline_vqe.')
-    parser.add_argument('--json-out', type=Path, default=Path('dependency_audit.json'))
-    parser.add_argument('--md-out', type=Path, default=Path('dependency_audit.md'))
+    parser.add_argument('--json-out', type=Path, default=DEFAULT_JSON_OUT)
+    parser.add_argument('--md-out', type=Path, default=DEFAULT_MD_OUT)
     parser.add_argument('--src', type=Path, default=SRC)
     args = parser.parse_args()
     report = run_audit(args.src)
+    args.json_out.parent.mkdir(parents=True, exist_ok=True)
+    args.md_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True))
     write_markdown(report, args.md_out)
 

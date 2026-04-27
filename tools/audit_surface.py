@@ -7,7 +7,10 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 from typing import Any
 
-PKG = Path(__file__).resolve().parent / "src" / "fieldline_vqe"
+ROOT = Path(__file__).resolve().parents[1]
+PKG = ROOT / "src" / "fieldline_vqe"
+DEFAULT_JSON_OUT = ROOT / "audit" / "surface_audit.json"
+DEFAULT_MD_OUT = ROOT / "audit" / "surface_audit.md"
 
 @dataclass
 class ModuleAudit:
@@ -119,11 +122,13 @@ def write_markdown(report: dict[str, Any], out: Path) -> None:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Audit fieldline_vqe package surface and debug residue.')
-    parser.add_argument('--json-out', type=Path, default=Path('surface_audit.json'))
-    parser.add_argument('--md-out', type=Path, default=Path('surface_audit.md'))
+    parser.add_argument('--json-out', type=Path, default=DEFAULT_JSON_OUT)
+    parser.add_argument('--md-out', type=Path, default=DEFAULT_MD_OUT)
     parser.add_argument('--package-root', type=Path, default=PKG)
     args = parser.parse_args()
     report = run_audit(args.package_root)
+    args.json_out.parent.mkdir(parents=True, exist_ok=True)
+    args.md_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True))
     write_markdown(report, args.md_out)
 

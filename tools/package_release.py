@@ -9,11 +9,11 @@ import zipfile
 from pathlib import Path
 from typing import Any
 
-ROOT = Path(__file__).resolve().parent
-DEFAULT_OUT = ROOT / 'fieldline_vqe_release.zip'
+ROOT = Path(__file__).resolve().parents[1]
+DEFAULT_OUT = ROOT / 'release' / 'fieldline_vqe_release.zip'
 DEFAULT_STAGE = ROOT / '.release_stage'
-DEFAULT_MANIFEST_JSON = ROOT / 'release_manifest.json'
-DEFAULT_MANIFEST_MD = ROOT / 'release_manifest.md'
+DEFAULT_MANIFEST_JSON = ROOT / 'release' / 'release_manifest.json'
+DEFAULT_MANIFEST_MD = ROOT / 'release' / 'release_manifest.md'
 
 REQUIRED_TOP = [
     'README.md',
@@ -31,6 +31,8 @@ EXCLUDE_DIRS = {
     '.mypy_cache',
     '.ruff_cache',
     '.release_stage',
+    'audit',
+    'release',
     'baseline_capture_artifacts',
     'baseline_before_seeded_artifacts',
     'baseline_after_seeded_artifacts',
@@ -116,12 +118,7 @@ def build_manifest(root: Path, files: list[Path]) -> dict[str, Any]:
 
 def stage_release(root: Path, stage_dir: Path) -> dict[str, Any]:
     if stage_dir.exists():
-        suffix = 0
-        stale_dir = stage_dir.with_name(f"{stage_dir.name}.stale")
-        while stale_dir.exists():
-            suffix += 1
-            stale_dir = stage_dir.with_name(f"{stage_dir.name}.stale.{suffix}")
-        stage_dir.rename(stale_dir)
+        shutil.rmtree(stage_dir)
     stage_dir.mkdir(parents=True)
     files = staged_files(root)
     manifest = build_manifest(root, files)
@@ -145,6 +142,7 @@ def write_manifest_md(report: dict[str, Any], out: Path) -> None:
 
 
 def zip_stage(stage_dir: Path, out_zip: Path) -> None:
+    out_zip.parent.mkdir(parents=True, exist_ok=True)
     if out_zip.exists():
         out_zip.unlink()
     with zipfile.ZipFile(out_zip, 'w', compression=zipfile.ZIP_DEFLATED) as zf:
@@ -163,6 +161,8 @@ def main() -> None:
     args = parser.parse_args()
 
     report = stage_release(args.root, args.stage_dir)
+    args.json_out.parent.mkdir(parents=True, exist_ok=True)
+    args.md_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True))
     write_manifest_md(report, args.md_out)
     canonical_json = args.stage_dir / 'release_manifest.json'
@@ -174,6 +174,7 @@ def main() -> None:
     if canonical_md.name != args.md_out.name:
         shutil.copy2(args.md_out, canonical_md)
     zip_stage(args.stage_dir, args.out_zip)
+    shutil.rmtree(args.stage_dir)
 
 
 if __name__ == '__main__':

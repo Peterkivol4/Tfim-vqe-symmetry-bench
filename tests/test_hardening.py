@@ -67,7 +67,7 @@ def test_surface_audit_tool_writes_reports(tmp_path: Path) -> None:
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_audit_surface import run_audit, write_markdown
+    from tools.audit_surface import run_audit, write_markdown
 
     report = run_audit()
     assert report['modules']
@@ -90,7 +90,7 @@ def test_dependency_audit_tool_writes_reports(tmp_path: Path) -> None:
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_audit_deps import run_audit, write_markdown
+    from tools.audit_deps import run_audit, write_markdown
 
     report = run_audit()
     assert 'modules' in report
@@ -146,7 +146,7 @@ def test_dependency_audit_reports_exact_pin_status() -> None:
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_audit_deps import run_audit
+    from tools.audit_deps import run_audit
 
     report = run_audit()
     assert 'requirement_files' in report
@@ -159,7 +159,7 @@ def test_compare_baseline_tool_detects_mismatch(tmp_path: Path) -> None:
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_compare_baseline import compare
+    from tools.compare_baseline import compare
 
     a = tmp_path / 'a.json'
     b = tmp_path / 'b.json'
@@ -175,7 +175,7 @@ def test_compare_baseline_tool_ignores_volatile_paths_by_default(tmp_path: Path)
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_compare_baseline import compare
+    from tools.compare_baseline import compare
 
     left = tmp_path / 'left.json'
     right = tmp_path / 'right.json'
@@ -192,7 +192,7 @@ def test_live_runtime_smoke_tool_prefers_configured_token_env(monkeypatch: pytes
     from pathlib import Path as _Path
 
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_live_runtime_smoke import ordered_channels, resolve_runtime_token, write_report
+    from tools.live_runtime_smoke import ordered_channels, resolve_runtime_token, write_report
 
     monkeypatch.delenv("FIELDLINE_IBM_RUNTIME_TOKEN", raising=False)
     monkeypatch.setenv("IBM_RUNTIME_TOKEN", "primary")
@@ -212,7 +212,7 @@ def test_release_packager_excludes_runtime_residue(tmp_path: Path) -> None:
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_package_release import stage_release
+    from tools.package_release import stage_release
 
     root = tmp_path / 'repo'
     (root / 'src' / 'pkg').mkdir(parents=True)
@@ -239,7 +239,7 @@ def test_release_packager_excludes_local_temp_and_venv_residue(tmp_path: Path) -
     import sys
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_package_release import stage_release
+    from tools.package_release import stage_release
 
     root = tmp_path / 'repo'
     (root / 'src' / 'pkg').mkdir(parents=True)
@@ -279,7 +279,7 @@ def test_release_verify_detects_manifest_tamper(tmp_path: Path) -> None:
     import json
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_verify_release import verify_tree
+    from tools.verify_release import verify_tree
 
     root = tmp_path / 'release'
     root.mkdir()
@@ -298,15 +298,15 @@ def test_release_packager_writes_canonical_manifest(tmp_path: Path) -> None:
     import zipfile
     from pathlib import Path as _Path
     sys.path.insert(0, str(_Path(__file__).resolve().parents[1]))
-    from tools_package_release import main as _unused
-    from tools_package_release import ROOT
+    from tools.package_release import main as _unused
+    from tools.package_release import ROOT
     import subprocess
 
     src = ROOT
     out_zip = tmp_path / 'bundle.zip'
     out_json = tmp_path / 'custom_manifest.json'
     out_md = tmp_path / 'custom_manifest.md'
-    subprocess.run([sys.executable, str(ROOT / 'tools_package_release.py'), '--out-zip', str(out_zip), '--json-out', str(out_json), '--md-out', str(out_md)], check=True)
+    subprocess.run([sys.executable, str(ROOT / 'tools' / 'package_release.py'), '--out-zip', str(out_zip), '--json-out', str(out_json), '--md-out', str(out_md)], check=True)
     with zipfile.ZipFile(out_zip) as zf:
         names = set(zf.namelist())
     assert 'release_manifest.json' in names

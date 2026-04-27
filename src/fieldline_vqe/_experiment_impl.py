@@ -16,7 +16,7 @@ from scipy.linalg import eigh
 from scipy.optimize import curve_fit
 from scipy.sparse.linalg import eigsh
 
-from .config import NoiseDeck, SPSAConfig
+from .config import NoiseBodyConfig, NoiseDeck, SPSAConfig
 from .constants import (
     BUDGET_FALLBACK,
     DEFAULT_PHYSICS_OBSERVABLE_WEIGHT,
@@ -105,9 +105,21 @@ class FieldLineExperiment(ExperimentService):
         return ansatz.assign_parameters(self._ordered_param_map(ansatz, params))
 
     @staticmethod
-    def _noise_signature(noise_cfg: Optional[NoiseDeck]) -> tuple:
+    def _noise_signature(noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]) -> tuple:
         if noise_cfg is None:
             return ("ideal",)
+        if isinstance(noise_cfg, NoiseBodyConfig):
+            p01, p10 = noise_cfg.readout_pair()
+            return (
+                "noise_body",
+                noise_cfg.body,
+                round(float(noise_cfg.strength), 12),
+                round(float(noise_cfg.correlation), 12),
+                round(float(noise_cfg.effective_coherence_angle()), 12),
+                round(float(noise_cfg.temporal_drift), 12),
+                round(float(p01), 12),
+                round(float(p10), 12),
+            )
         p01, p10 = noise_cfg.readout_pair()
         return (
             "noisy",
@@ -134,7 +146,7 @@ class FieldLineExperiment(ExperimentService):
     def _operator_signature(operator: SparsePauliOp) -> tuple:
         return tuple((label, round(float(np.real(coeff)), 12)) for label, coeff in zip(operator.paulis.to_labels(), operator.coeffs))
 
-    def _get_noise_model(self, noise_cfg: Optional[NoiseDeck]):
+    def _get_noise_model(self, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]):
         signature = self._noise_signature(noise_cfg)
         with self._cache_lock:
             if signature in self._noise_model_cache:
@@ -145,7 +157,7 @@ class FieldLineExperiment(ExperimentService):
             self._noise_model_cache[signature] = model
             return model
 
-    def _get_backend(self, noise_cfg: Optional[NoiseDeck], method: Optional[str] = None) -> AerSimulator:
+    def _get_backend(self, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig], method: Optional[str] = None) -> AerSimulator:
         signature = (self._noise_signature(noise_cfg), method or "default")
         with self._cache_lock:
             if signature in self._backend_cache:
@@ -185,10 +197,10 @@ class FieldLineExperiment(ExperimentService):
             merged[key] = merged.get(key, 0) + int(value)
         return merged
 
-    def _measurement_template_key(self, ansatz: QuantumCircuit, basis: str, noise_cfg: Optional[NoiseDeck]) -> tuple:
+    def _measurement_template_key(self, ansatz: QuantumCircuit, basis: str, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]) -> tuple:
         return (self._ansatz_signature(ansatz), basis, self._noise_signature(noise_cfg))
 
-    def _get_measurement_template(self, ansatz: QuantumCircuit, basis: str, noise_cfg: Optional[NoiseDeck]) -> tuple[dict, bool]:
+    def _get_measurement_template(self, ansatz: QuantumCircuit, basis: str, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]) -> tuple[dict, bool]:
         key = self._measurement_template_key(ansatz, basis, noise_cfg)
         with self._cache_lock:
             if key in self._measurement_template_cache:
@@ -203,7 +215,7 @@ class FieldLineExperiment(ExperimentService):
             self._measurement_template_cache[key] = entry
         return entry, False
 
-    def _sample_counts_from_template(self, ansatz: QuantumCircuit, params: np.ndarray, basis: str, noise_cfg: Optional[NoiseDeck], shots: int) -> tuple[Dict[str, int], Dict[str, object]]:
+    def _sample_counts_from_template(self, ansatz: QuantumCircuit, params: np.ndarray, basis: str, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig], shots: int) -> tuple[Dict[str, int], Dict[str, object]]:
         entry, cache_hit = self._get_measurement_template(ansatz, basis, noise_cfg)
         parameter_map = {parameter: float(value) for parameter, value in zip(sorted(entry["template"].parameters, key=lambda p: p.name), params.tolist())}
         executable = entry["template"].assign_parameters(parameter_map, inplace=False) if parameter_map else entry["template"]
@@ -215,13 +227,13 @@ class FieldLineExperiment(ExperimentService):
             "shots_executed": int(sum(counts.values())),
         }
 
-    def _sample_counts(self, circuit: QuantumCircuit, basis: str, noise_cfg: Optional[NoiseDeck], shots: int) -> Dict[str, int]:
+    def _sample_counts(self, circuit: QuantumCircuit, basis: str, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig], shots: int) -> Dict[str, int]:
         measured = MeasurementPlanner.measurement_circuit(circuit, basis)
         backend = self._get_backend(noise_cfg)
         compiled = transpile(measured, backend, seed_transpiler=self.seed)
         return backend.run(compiled, shots=shots).result().get_counts()
 
-    def _simulate_state(self, circuit: QuantumCircuit, noise_cfg: Optional[NoiseDeck]):
+    def _simulate_state(self, circuit: QuantumCircuit, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]):
         return self.state_executor.simulate_state(circuit, noise_cfg)
 
     def _estimate_observables(self, state):
@@ -239,7 +251,7 @@ class FieldLineExperiment(ExperimentService):
         dag = circuit_to_dag(circuit)
         return int(sum(1 for layer in dag.layers() if any(len(node.qargs) >= 2 for node in layer["graph"].op_nodes())))
 
-    def _circuit_hardware_metrics(self, ansatz: QuantumCircuit, noise_cfg: Optional[NoiseDeck]) -> Dict[str, int]:
+    def _circuit_hardware_metrics(self, ansatz: QuantumCircuit, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]) -> Dict[str, int]:
         backend = self._get_backend(noise_cfg)
         transpiled_ansatz = transpile(ansatz, backend, seed_transpiler=self.seed)
         observables = {"energy": self.hamiltonian, "x_parity": self.symmetry_operator}
@@ -373,7 +385,7 @@ class FieldLineExperiment(ExperimentService):
             },
         }
 
-    def _final_cost_evaluation(self, *, ansatz: QuantumCircuit, optimal: np.ndarray, noise_cfg: Optional[NoiseDeck], symmetry_penalty_lambda: float, shot_allocation: str, final_shots: int, preflight_shots: int, enable_readout_mitigation: bool, enable_zne: bool, zne_factors: List[int], zne_extrapolator: str) -> tuple[float, Dict[str, object], int | None]:
+    def _final_cost_evaluation(self, *, ansatz: QuantumCircuit, optimal: np.ndarray, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig], symmetry_penalty_lambda: float, shot_allocation: str, final_shots: int, preflight_shots: int, enable_readout_mitigation: bool, enable_zne: bool, zne_factors: List[int], zne_extrapolator: str) -> tuple[float, Dict[str, object], int | None]:
         shots = final_shots if noise_cfg is not None else None
         value, metadata = self._estimate_cost(
             ansatz=ansatz,
@@ -390,7 +402,7 @@ class FieldLineExperiment(ExperimentService):
         )
         return float(value), metadata, shots
 
-    def run_vqe(self, ansatz: QuantumCircuit, optimizer_name: str, max_iter: int, label: str, ansatz_name: str, depth: int, noise_cfg: Optional[NoiseDeck] = None, verification_shots: int = 4096, symmetry_penalty_lambda: float = 0.0, shot_allocation: str = "equal", base_shots: int = 512, final_shots: int = 4096, preflight_shots: int = 256, enable_dynamic_shots: bool = False, enable_readout_mitigation: bool = True, enable_zne: bool = False, zne_factors: Optional[List[int]] = None, zne_extrapolator: str = "linear", physical_validity_tol: float = DEFAULT_PHYSICAL_VALIDITY_TOL, spsa_config: Optional[SPSAConfig] = None) -> TrialRecord:
+    def run_vqe(self, ansatz: QuantumCircuit, optimizer_name: str, max_iter: int, label: str, ansatz_name: str, depth: int, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig] = None, verification_shots: int = 4096, symmetry_penalty_lambda: float = 0.0, shot_allocation: str = "equal", base_shots: int = 512, final_shots: int = 4096, preflight_shots: int = 256, enable_dynamic_shots: bool = False, enable_readout_mitigation: bool = True, enable_zne: bool = False, zne_factors: Optional[List[int]] = None, zne_extrapolator: str = "linear", physical_validity_tol: float = DEFAULT_PHYSICAL_VALIDITY_TOL, spsa_config: Optional[SPSAConfig] = None) -> TrialRecord:
         zne_factors = list(zne_factors or [1, 3, 5])
         LOGGER.info("Running VQE | label=%s | ansatz=%s | optimizer=%s | noisy=%s", label, ansatz_name, optimizer_name.upper(), noise_cfg is not None)
         start = time.time()

@@ -2,7 +2,13 @@ from __future__ import annotations
 
 import argparse
 import json
+import sys
 from pathlib import Path
+
+ROOT = Path(__file__).resolve().parents[1]
+SRC = ROOT / "src"
+if str(SRC) not in sys.path:
+    sys.path.insert(0, str(SRC))
 
 from fieldline_vqe.config import NoiseDeck, RunSpec, StudySpec
 from fieldline_vqe.pipeline import run_experiment, run_study
@@ -10,6 +16,7 @@ from fieldline_vqe.pipeline import run_experiment, run_study
 
 def capture(prefix: str) -> dict[str, object]:
     base = Path(prefix)
+    base.parent.mkdir(parents=True, exist_ok=True)
     single_prefix = str(base.with_name(base.name + '_single'))
     study_prefix = str(base.with_name(base.name + '_study'))
     zne_prefix = str(base.with_name(base.name + '_zne'))
@@ -52,7 +59,7 @@ def capture(prefix: str) -> dict[str, object]:
 
 def main() -> None:
     parser = argparse.ArgumentParser(description='Capture a repeatable fieldline_vqe baseline payload.')
-    parser.add_argument('--output-prefix', type=str, default='baseline_capture')
+    parser.add_argument('--output-prefix', type=str, default=str(ROOT / 'results' / 'baselines' / 'baseline_capture'))
     args = parser.parse_args()
     capture(args.output_prefix)
 

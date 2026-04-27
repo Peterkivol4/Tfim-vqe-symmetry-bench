@@ -8,7 +8,7 @@ from qiskit import QuantumCircuit, transpile
 from qiskit.quantum_info import DensityMatrix, SparsePauliOp, Statevector
 from scipy.optimize import minimize
 
-from .config import NoiseDeck, SPSAConfig
+from .config import NoiseBodyConfig, NoiseDeck, SPSAConfig
 from .logging_utils import get_logger
 from .metrics import SymmetryGate, parity_expectation
 from .observables import MeasurementPlanner, StateAnalyzer, expectation, observable_error_l2
@@ -58,7 +58,7 @@ class StateExecutor:
     def __init__(self, experiment):
         self.experiment = experiment
 
-    def simulate_state(self, circuit: QuantumCircuit, noise_cfg: Optional[NoiseDeck]) -> Statevector | DensityMatrix:
+    def simulate_state(self, circuit: QuantumCircuit, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig]) -> Statevector | DensityMatrix:
         if noise_cfg is None:
             return Statevector.from_instruction(circuit)
         sim_circuit = circuit.copy()
@@ -107,7 +107,7 @@ class MeasurementExecutor:
         ansatz: QuantumCircuit,
         params: np.ndarray,
         operator: SparsePauliOp,
-        noise_cfg: NoiseDeck,
+        noise_cfg: NoiseDeck | NoiseBodyConfig,
         total_shots: int,
         shot_allocation: str,
         preflight_shots: int,
@@ -196,7 +196,7 @@ class MeasurementExecutor:
         self,
         ansatz: QuantumCircuit,
         params: np.ndarray,
-        noise_cfg: Optional[NoiseDeck],
+        noise_cfg: Optional[NoiseDeck | NoiseBodyConfig],
         symmetry_penalty_lambda: float,
         shots: Optional[int],
         shot_allocation: str,
@@ -253,7 +253,7 @@ class MeasurementExecutor:
             "cost_value": float(value),
         }
 
-    def sample_x_parity(self, circuit: QuantumCircuit, noise_cfg: Optional[NoiseDeck], shots: int, enable_readout_mitigation: bool) -> Dict[str, float]:
+    def sample_x_parity(self, circuit: QuantumCircuit, noise_cfg: Optional[NoiseDeck | NoiseBodyConfig], shots: int, enable_readout_mitigation: bool) -> Dict[str, float]:
         exp = self.experiment
         counts = exp._sample_counts(circuit, "X" * exp.n_qubits, noise_cfg, shots)
         filtered = SymmetryGate.filter_by_x_parity(counts, sector=exp.target_x_parity_sector)
@@ -340,7 +340,7 @@ class OptimizationExecutor:
         ansatz: QuantumCircuit,
         optimizer_name: str,
         max_iter: int,
-        noise_cfg: Optional[NoiseDeck],
+        noise_cfg: Optional[NoiseDeck | NoiseBodyConfig],
         symmetry_penalty_lambda: float,
         shot_allocation: str,
         base_shots: int,

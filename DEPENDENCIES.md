@@ -20,4 +20,4 @@
 - gcc / clang toolchain — optional build-time requirement for the parity kernels in src/fieldline_vqe/_native_kernels.c
 - the repo may also contain prebuilt platform-specific native parity libraries such as `src/fieldline_vqe/_native_kernels.so` or `src/fieldline_vqe/_native_kernels.dylib`
 - those binaries are optional acceleration artifacts; the loader falls back to the pure-Python implementation if no compatible native library is present
-- rebuild the native library for the current platform with `python tools_build_native.py` before packaging or redistribution
+- rebuild the native library for the current platform with `python tools/build_native.py` before packaging or redistribution

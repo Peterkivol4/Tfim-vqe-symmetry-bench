@@ -7,6 +7,7 @@ from fnmatch import fnmatch
 from pathlib import Path
 from typing import Any
 
+ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_IGNORE_PATTERNS = (
     'config.run_spec.output_prefix',
     'config.output_prefix',
@@ -91,11 +92,13 @@ def main() -> None:
     parser.add_argument('right', type=Path)
     parser.add_argument('--tolerance', type=float, default=1e-12)
     parser.add_argument('--ignore-pattern', dest='ignore_patterns', action='append', default=None)
-    parser.add_argument('--json-out', type=Path, default=Path('baseline_compare.json'))
-    parser.add_argument('--md-out', type=Path, default=Path('baseline_compare.md'))
+    parser.add_argument('--json-out', type=Path, default=ROOT / 'audit' / 'baseline_compare.json')
+    parser.add_argument('--md-out', type=Path, default=ROOT / 'audit' / 'baseline_compare.md')
     args = parser.parse_args()
     ignore_patterns = tuple(args.ignore_patterns) if args.ignore_patterns else DEFAULT_IGNORE_PATTERNS
     report = compare(args.left, args.right, tol=args.tolerance, ignore_patterns=ignore_patterns)
+    args.json_out.parent.mkdir(parents=True, exist_ok=True)
+    args.md_out.parent.mkdir(parents=True, exist_ok=True)
     args.json_out.write_text(json.dumps(report, indent=2, sort_keys=True))
     write_markdown(report, args.md_out)
     raise SystemExit(0 if report['match'] else 1)

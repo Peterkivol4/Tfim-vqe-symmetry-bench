@@ -4,7 +4,7 @@ import platform
 import subprocess
 from pathlib import Path
 
-ROOT = Path(__file__).resolve().parent
+ROOT = Path(__file__).resolve().parents[1]
 SRC = ROOT / "src" / "fieldline_vqe" / "_native_kernels.c"
 OUTDIR = ROOT / "src" / "fieldline_vqe"
 

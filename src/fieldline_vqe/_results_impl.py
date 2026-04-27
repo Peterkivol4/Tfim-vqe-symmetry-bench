@@ -3,7 +3,31 @@ from __future__ import annotations
 from dataclasses import dataclass
 from typing import Any, Dict, List
 
-__all__ = ["TrialRecord"]
+__all__ = ["TrialRecord", "DeviationSignature"]
+
+
+@dataclass
+class DeviationSignature:
+    n: int
+    g: float
+    depth: int
+    ansatz: str
+    optimizer: str
+    noise_body: str
+    noise_strength: float
+    energy_error: float
+    fidelity_loss: float | None
+    parity_sector_loss: float
+    symmetry_breaking_error: float
+    magnetization_x_error: float
+    magnetization_z_error: float
+    correlation_xx_error: float
+    correlation_zz_error: float
+    connected_correlation_error: float
+    entanglement_entropy_error: float | None
+    energy_variance: float
+    gradient_norm: float | None
+    critical_drift_score: float | None
 
 
 @dataclass

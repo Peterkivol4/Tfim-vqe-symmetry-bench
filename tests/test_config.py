@@ -1,6 +1,6 @@
 import pytest
 
-from fieldline_vqe.config import NoiseDeck, RunSpec, StudySpec
+from fieldline_vqe.config import NoiseBodyConfig, NoiseBodySweepSpec, NoiseDeck, RunSpec, StudySpec
 
 
 def test_run_spec_normalizes_optimizer_and_ansatz() -> None:
@@ -87,3 +87,30 @@ def test_runspec_accepts_bfgs_optimizer() -> None:
 def test_noise_deck_scaled_rejects_nonpositive_factor() -> None:
     with pytest.raises(ValueError):
         NoiseDeck().scaled(0.0)
+
+
+def test_noise_body_config_accepts_known_bodies() -> None:
+    cfg = NoiseBodyConfig(body="dephasing", strength=0.01)
+    cfg.validate()
+    assert cfg.body == "local_dephasing"
+
+
+def test_noise_body_config_rejects_invalid_body() -> None:
+    with pytest.raises(ValueError):
+        NoiseBodyConfig(body="dephasng", strength=0.01).validate()
+
+
+def test_noise_body_strength_nonnegative() -> None:
+    with pytest.raises(ValueError):
+        NoiseBodyConfig(body="amplitude_damping", strength=-0.01).validate()
+
+
+def test_noise_body_correlation_range() -> None:
+    with pytest.raises(ValueError):
+        NoiseBodyConfig(body="correlated_zz_noise", strength=0.01, correlation=1.5).validate()
+
+
+def test_noise_body_sweep_spec_normalizes_body_names() -> None:
+    spec = NoiseBodySweepSpec(bodies=["dephasing", "coherent_drift"], strengths=[0.0, 0.01])
+    spec.validate()
+    assert spec.bodies == ["local_dephasing", "coherent_z_drift"]
