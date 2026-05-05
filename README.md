@@ -1,10 +1,18 @@
-# Noise-Body VQE for Transverse-Field Ising Chains
+# FieldLine VQE
 
-**In one sentence.** FieldLine studies VQE failure as environmental physics: it models structured noise bodies and asks which body caused which physical deformation in the learned TFIM state.
+**The surprise.** False winners show up even in ideal conditions. In the retained wide sweep, all `4/18` false-winner buckets in `results/studies/wide_crossover_behavior_crossover.csv` came from the ideal depth-1 runs, where the hardware-efficient ansatz lowered the raw energy by leaving the target `X`-parity sector instead of representing the right TFIM ground state.
+
+**If you read one note first.** [What surprised me in this repo](docs/notes/what_surprised_me.md).
+
+**If you want the process instead of the polished version.** [RESEARCH_JOURNAL.md](RESEARCH_JOURNAL.md).
 
 ![False-winner case panel](docs/figures/false_winner_case.svg)
 
-**Project identity.** FieldLine treats VQE as an imperfect physical instrument, not only an optimizer. The repo models local dephasing, amplitude damping, correlated ZZ noise, coherent drift, readout distortion, and hardware-style phenomenological noise as distinct environmental bodies, then records the deformation signature each body leaves in energy, symmetry, magnetization, correlations, entanglement, variance, and trainability. False winners are still central here, but they are treated as one important deformation mode rather than the whole identity.
+**In one sentence.** FieldLine studies when a VQE state looks numerically good by raw energy and is still physically wrong once symmetry, observables, and exact-reference structure are taken seriously.
+
+**Why the repo looks the way it does.** This started as a TFIM VQE benchmark and turned into a lab notebook about deformation. The interesting cases were not the clean wins. They were the runs where energy looked fine, but parity leaked, observables drifted, or a cheap ansatz won by solving the wrong physical problem. The newer noise-body layer keeps that same instinct and asks which structured environmental body caused which deformation signature in the learned state.
+
+I built this after three other projects kept bothering me in different ways. [LayerField QAOA](https://github.com/Peterkivol4/portfolio-qaoa-characterization) is where I first started thinking that shallow variational circuits were compressing genuinely different physics into one answer. [SpinMesh Runtime](https://github.com/Peterkivol4/Runtime-Aware-QAOA-for-Constrained-J1-J2-Ising-Ground-State-Search) made me stop treating execution as bookkeeping and start treating it as part of the experiment. [TeleportDim](https://github.com/Peterkivol4/Teleportdim-hardware-study) pushed the same instinct into a cleaner fixed-hardware setting. FieldLine is where those threads finally met.
 
 **Committed artifact layout.** Reproducible baselines live in `results/baselines/`, wider sweeps and crossover studies live in `results/studies/`, noise-body atlas outputs live in `results/noise_bodies/`, runtime smoke outputs live in `results/runtime/`, and regenerable maintenance outputs land in `audit/` and `release/`.
 
@@ -40,13 +48,7 @@ The main artifact is no longer only a gap table. It is a deviation-signature tab
 
 **Headline baseline result.** In the committed near-critical baseline capture, symmetry-aware filtering reduces the exact-gap error from `1.8857` to `1.5469`, lowers observable-error L2 from `0.3376` to `0.1887`, and preserves `43.49%` probability mass in the target `X`-parity sector (`results/baselines/baseline_capture_single.json`, `results/baselines/baseline_capture_study_behavior_report.md`).
 
-**Hand-written note.** [What surprised me in this repo](docs/notes/what_surprised_me.md).
-
-This repository turns the original FieldLine VQE scaffold into a more physics-aware study of **how structured environmental bodies deform TFIM variational states across ansatz family, optimizer choice, field regime, symmetry handling, measurement strategy, and mitigation settings**.
-
-The repo is meant to read less like “a clean VQE demo” and more like:
-
-> a structured study of environment-induced deformation, symmetry leakage, observable drift, and mitigation tradeoffs for transverse-field Ising chains.
+After the first clean false-winner cases, the repo stopped feeling like a benchmark and started feeling like a running record of deformation: which ansatz cheated, which observable moved first, and whether the failure came from symmetry leakage, noise, or the optimizer itself.
 
 ## Core question
 
@@ -429,19 +431,15 @@ This repo is materially stronger than the original version, but four limitations
 - **Scalarization choice.** The crossover score is physics-aware, but it still reflects a chosen weighting of gap, symmetry error, and observable error.
 - **Runtime access limits.** Runtime support is structurally ready, but broader backend studies still depend on credentials, queue access, and quota control.
 
-## Best next experimental step
+## what I'd do next with a GPU cluster and two weeks
 
-The best next step is now narrower and stronger than before:
+I would keep the current false-winner buckets fixed and scale the surrounding evidence, not wander into a new benchmark.
 
-run one bounded Runtime campaign that directly compares
-
-- no mitigation
-- TREX-style measurement mitigation
-- ZNE
-- symmetry penalty only
-- symmetry penalty plus mitigation
-
-for the same TFIM workloads and the same grouped observable set, then compare **raw energy winners** against **physics-aware winners** in the final analysis.
+- rerun the ideal and noisy crossover grid with `10-20x` more seeds so the false-winner rate has tighter error bars
+- sweep the raw-sector validity tolerance and the symmetry-penalty weight together to see whether the `valid_fraction = 0.000` result is a hard physical wall or a threshold-choice artifact
+- widen the noise-body atlas around `g \approx 1` with finer field spacing, because that is where energy is most likely to hide the real deformation
+- run a bounded Runtime campaign on the same buckets with four settings: no mitigation, readout mitigation, symmetry penalty, and symmetry penalty plus ZNE
+- store gradient-norm and optimizer-stall summaries beside the state observables so I can separate state failure from training-landscape failure
 
 
 ## Measurement Methodology
